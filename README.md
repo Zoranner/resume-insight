@@ -169,11 +169,17 @@ resume-insight/
 ## 🚀 部署
 
 ```bash
-# 生产编译
-cargo build --release
+# 1. 配置环境变量
+cp .env.example .env  # 编辑 .env 填入 LLM_API_KEY
 
-# 运行（确保 prompts/ 目录和 .env 在同一目录）
-./target/release/resume-insight
+# 2. 构建镜像
+docker build -t resume-insight:latest .
+
+# 3. 启动服务
+docker-compose up -d
+
+# 4. 查看日志
+docker-compose logs -f
 ```
 
 ## 📄 许可证

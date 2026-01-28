@@ -1,5 +1,5 @@
 # 多阶段构建
-FROM rust:1.75 AS builder
+FROM rust:1.91 AS builder
 
 WORKDIR /app
 
