@@ -5,6 +5,7 @@ use std::env;
 pub struct Config {
     pub llm: LlmConfig,
     pub server: ServerConfig,
+    pub database: DatabaseConfig,
 }
 
 #[derive(Debug, Clone)]
@@ -21,6 +22,11 @@ pub struct ServerConfig {
     pub base_url: String,
 }
 
+#[derive(Debug, Clone)]
+pub struct DatabaseConfig {
+    pub url: String,
+}
+
 impl Config {
     pub fn from_env() -> Result<Self> {
         Ok(Self {
@@ -34,6 +40,10 @@ impl Config {
                 log_dir: env::var("LOG_DIR").unwrap_or_else(|_| "./logs".to_string()),
                 base_url: env::var("SERVER_BASE_URL")
                     .context("SERVER_BASE_URL not set (e.g., http://localhost:3000)")?,
+            },
+            database: DatabaseConfig {
+                url: env::var("DATABASE_URL")
+                    .unwrap_or_else(|_| "sqlite://data/resume.db?mode=rwc".to_string()),
             },
         })
     }

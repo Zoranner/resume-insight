@@ -36,7 +36,7 @@ impl Analyzer {
         })
     }
 
-    fn calculate_hash(data: &[u8]) -> String {
+    pub fn calculate_hash(&self, data: &[u8]) -> String {
         let mut hasher = Sha256::new();
         hasher.update(data);
         format!("{:x}", hasher.finalize())
@@ -50,14 +50,14 @@ impl Analyzer {
             .unwrap_or_else(|| "pdf".to_string())
     }
 
-    async fn save_file(&self, data: &[u8], filename: &str) -> Result<String, AppError> {
+    pub async fn save_file(&self, data: &[u8], filename: &str) -> Result<String, AppError> {
         // 创建数据目录
         let data_dir = PathBuf::from(&self.server_config.data_dir);
         fs::create_dir_all(&data_dir)
             .await
             .map_err(|e| AppError::Internal(anyhow::anyhow!("Failed to create data dir: {}", e)))?;
 
-        let file_hash = Self::calculate_hash(data);
+        let file_hash = self.calculate_hash(data);
         let extension = Self::get_extension(filename);
         let hash_filename = format!("{}.{}", file_hash, extension);
         let file_path = data_dir.join(&hash_filename);

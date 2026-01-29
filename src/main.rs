@@ -1,19 +1,26 @@
 mod config;
+mod entities;
 mod error;
 mod handlers;
 mod logger;
+mod migration;
 mod models;
 mod prompts;
+mod repositories;
 mod services;
 
 use axum::{
-    routing::{get, post},
+    routing::{delete, get, post},
     Router,
 };
+use sea_orm::{Database, DatabaseConnection};
+use sea_orm_migration::MigratorTrait;
 use tower_http::{
     cors::CorsLayer, limit::RequestBodyLimitLayer, services::ServeDir, trace::TraceLayer,
 };
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+use migration::Migrator;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -39,15 +46,31 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Data directory: {}", config.server.data_dir);
     tracing::info!("Log directory: {}", config.server.log_dir);
 
+    // 初始化数据库连接
+    tracing::info!("Connecting to database: {}", config.database.url);
+    let db: DatabaseConnection = Database::connect(&config.database.url).await?;
+    tracing::info!("Database connected successfully");
+
+    // 运行数据库迁移
+    tracing::info!("Running database migrations...");
+    Migrator::up(&db, None).await?;
+    tracing::info!("Database migrations completed");
+
     let data_dir = config.server.data_dir.clone();
 
     // 创建应用状态
-    let state = handlers::AppState::new(config)?;
+    let state = handlers::AppState::new(config, db)?;
 
     // 构建路由
     let app = Router::new()
         .route("/health", get(handlers::health_check))
-        .route("/api/v1/analyze", post(handlers::analyze_resume))
+        // 新的 API 端点
+        .route("/api/v1/resumes/upload", post(handlers::upload_resumes))
+        .route("/api/v1/resumes/analyze", post(handlers::analyze_resumes))
+        .route("/api/v1/resumes", get(handlers::list_resumes))
+        .route("/api/v1/resumes/:id", get(handlers::get_resume_detail))
+        .route("/api/v1/resumes/:id", delete(handlers::delete_resume))
+        .route("/api/v1/resumes/:id/status", get(handlers::get_resume_status))
         .nest_service("/files", ServeDir::new(&data_dir)) // 静态文件服务
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())

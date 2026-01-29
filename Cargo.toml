@@ -38,6 +38,12 @@ chrono = "0.4"
 # 环境变量
 dotenvy = "0.15"
 
+# ORM（类似 TypeORM）
+sea-orm = { version = "0.12", features = ["sqlx-sqlite", "runtime-tokio-native-tls", "macros"] }
+sea-orm-migration = { version = "0.12", features = ["sqlx-sqlite", "runtime-tokio-native-tls"], default-features = false }
+# UUID 生成
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
 [[bin]]
 name = "resume-insight"
 path = "src/main.rs"
