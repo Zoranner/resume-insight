@@ -25,7 +25,7 @@ pub struct Analyzer {
 impl Analyzer {
     pub fn new(config: LlmConfig, server_config: ServerConfig) -> Result<Self> {
         let prompt_manager = PromptManager::load().context("Failed to load prompt manager")?;
-        let logger = Logger::new(&server_config.log_dir);
+        let logger = Logger::new(&server_config.logs_dir);
 
         Ok(Self {
             config,
@@ -51,16 +51,16 @@ impl Analyzer {
     }
 
     pub async fn save_file(&self, data: &[u8], filename: &str) -> Result<String, AppError> {
-        // 创建数据目录
-        let data_dir = PathBuf::from(&self.server_config.data_dir);
-        fs::create_dir_all(&data_dir)
+        // 创建文件目录
+        let files_dir = PathBuf::from(&self.server_config.files_dir);
+        fs::create_dir_all(&files_dir)
             .await
-            .map_err(|e| AppError::Internal(anyhow::anyhow!("Failed to create data dir: {}", e)))?;
+            .map_err(|e| AppError::Internal(anyhow::anyhow!("Failed to create files dir: {}", e)))?;
 
         let file_hash = self.calculate_hash(data);
         let extension = Self::get_extension(filename);
         let hash_filename = format!("{}.{}", file_hash, extension);
-        let file_path = data_dir.join(&hash_filename);
+        let file_path = files_dir.join(&hash_filename);
 
         // 如果文件已存在，直接返回 URL
         if !file_path.exists() {

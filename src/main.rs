@@ -41,10 +41,10 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Configuration loaded successfully");
 
     // 创建数据文件目录和日志目录
-    tokio::fs::create_dir_all(&config.server.data_dir).await?;
-    tokio::fs::create_dir_all(&config.server.log_dir).await?;
-    tracing::info!("Data directory: {}", config.server.data_dir);
-    tracing::info!("Log directory: {}", config.server.log_dir);
+    tokio::fs::create_dir_all(&config.server.files_dir).await?;
+    tokio::fs::create_dir_all(&config.server.logs_dir).await?;
+    tracing::info!("Files directory: {}", config.server.files_dir);
+    tracing::info!("Logs directory: {}", config.server.logs_dir);
 
     // 初始化数据库连接
     tracing::info!("Connecting to database: {}", config.database.url);
@@ -56,7 +56,7 @@ async fn main() -> anyhow::Result<()> {
     Migrator::up(&db, None).await?;
     tracing::info!("Database migrations completed");
 
-    let data_dir = config.server.data_dir.clone();
+    let files_dir = config.server.files_dir.clone();
 
     // 创建应用状态
     let state = handlers::AppState::new(config, db)?;
@@ -71,7 +71,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/resumes/:id", get(handlers::get_resume_detail))
         .route("/api/v1/resumes/:id", delete(handlers::delete_resume))
         .route("/api/v1/resumes/:id/status", get(handlers::get_resume_status))
-        .nest_service("/files", ServeDir::new(&data_dir)) // 静态文件服务
+        .nest_service("/files", ServeDir::new(&files_dir)) // 静态文件服务
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())
         .layer(RequestBodyLimitLayer::new(500 * 1024 * 1024)) // 500MB

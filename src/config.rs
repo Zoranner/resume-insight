@@ -17,8 +17,8 @@ pub struct LlmConfig {
 
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
-    pub data_dir: String,
-    pub log_dir: String,
+    pub files_dir: String,
+    pub logs_dir: String,
     pub base_url: String,
 }
 
@@ -36,8 +36,8 @@ impl Config {
                 api_key: env::var("LLM_API_KEY").context("LLM_API_KEY not set")?,
             },
             server: ServerConfig {
-                data_dir: env::var("DATA_DIR").unwrap_or_else(|_| "./data/files".to_string()),
-                log_dir: env::var("LOG_DIR").unwrap_or_else(|_| "./logs".to_string()),
+                files_dir: env::var("FILES_DIR").unwrap_or_else(|_| "./data/files".to_string()),
+                logs_dir: env::var("LOGS_DIR").unwrap_or_else(|_| "./logs".to_string()),
                 base_url: env::var("SERVER_BASE_URL")
                     .context("SERVER_BASE_URL not set (e.g., http://localhost:3000)")?,
             },
