@@ -25,3 +25,7 @@ Thumbs.db
 # Temp files
 /temp/
 /tmp/
+
+# User job prompts (keep only default.md)
+prompts/jobs/*
+!prompts/jobs/default.md
